@@ -1,13 +1,425 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>sample</title>
+    <title>Todo App</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+        crossorigin="anonymous"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Poppins", sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: url('https://images.pexels.com/photos/2627246/pexels-photo-2627246.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1') no-repeat;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .wrapper {
+            color: #fff;
+            width: 700px;
+            background: transparent;
+            border: 2px solid rgba(225, 225, 225, .2);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 0 10px rgba(0, 0, 0, .2);
+            border-radius: 15px;
+            padding: 1rem;
+        }
+
+        .wrapper h1 {
+            text-align: center;
+            font-size: 36px;
+        }
+
+        .wrapper .input-box {
+            width: 100%;
+            height: 50%;
+            position: relative;
+            margin: 30px 0;
+        }
+
+        .input-box input {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            border: 2px solid rgba(225, 225, 225, .2);
+            border-radius: 5px;
+            font-size: 16px;
+            color: #fff;
+            padding: 20px 45px 20px 20px;
+        }
+
+        .input-box input::placeholder {
+            color: #fff;
+        }
+
+        label {
+            position: absolute;
+            top: 0.25rem;
+            left: 0.75rem;
+            pointer-events: none;
+            font-size: 15px;
+            color: grey;
+            transform-origin: 0% 0%;
+            transform: translate(0, 1.5px) scale(1);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .wrapper .button {
+            font-size: 16px;
+            font-weight: 700;
+            color: black;
+            cursor: pointer;
+            width: 50%;
+            height: 45px;
+            background: #6495ED;
+            border: none;
+            outline: none;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, .1);
+        }
+
+        .wrapper .button:hover {
+            background: #CCCCFF;
+            font-weight: 800;
+        }
+
+        #name {
+            color: #039BE5;
+        }
+
+        #name:hover {
+            color: #1565C0;
+        }
+    </style>
 </head>
+
 <body>
-    <h1>Welcome to Todo App</h1>
-    {{name}}
+
+    <div class="wrapper text-center">
+
+        <h1>Todo App</h1>
+        <div class="text-white m-2 px-2 d-flex justify-content-between">
+            <span class="d-flex align-items-end">
+                <h3 class="text-start me-1">Welcome,</h3>
+                <h6 class="fs-3" id="name">{{name}}</h6>
+            </span>
+            <span class="d-flex align-items-center">
+                <a href="/logout/" class="btn btn-lg btn-danger">Log out</a>
+            </span>
+        </div>
+        <form action="/" method="post">
+            {% csrf_token %}
+            <div class="input-box">
+                <input type="text" name="task" placeholder="New Task..." required>
+            </div>
+            <div class="input-box">
+                <input type="date" name="date" placeholder="New Task..." required>
+                <label for="date">Expected Completion Date</label>
+            </div>
+            <button type="submit" class="button">Add New Todo</button>
+        </form>
+
+        <ul class="nav nav-pills mb-2 mt-3" id="pills-tab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="pills-all-tab" data-bs-toggle="pill" data-bs-target="#pills-all"
+                    type="button" role="tab" aria-controls="pills-all" aria-selected="true">All</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link text-white" id="pills-active-tab" data-bs-toggle="pill"
+                    data-bs-target="#pills-active" type="button" role="tab" aria-controls="pills-active"
+                    aria-selected="false">Pending</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link text-white" id="pills-completed-tab" data-bs-toggle="pill"
+                    data-bs-target="#pills-completed" type="button" role="tab" aria-controls="pills-completed"
+                    aria-selected="false">Completed</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link text-white" id="pills-expired-tab" data-bs-toggle="pill"
+                    data-bs-target="#pills-expired" type="button" role="tab" aria-controls="pills-expired"
+                    aria-selected="false">Expired</button>
+            </li>
+        </ul>
+
+        <div class="tab-content overflow-auto" id="pills-tabContent">
+            <div class="tab-pane fade show active" id="pills-all" role="tabpanel" aria-labelledby="pills-all-tab"
+                tabindex="0">
+                <ul class="list-group mb-0">
+                    {% if completed or todos or expired %}
+                    {% for todo in todos %}
+                    <li
+                        class="list-group-item d-flex align-items-center justify-content-between border-0 mb-2 rounded text-bg-secondary">
+                        {{ todo.task|truncatechars:20 }}
+                        <div class="d-flex align-items-center">
+                            <button type="button" class="checkBtn btn btn-success btn-sm me-2" data-id="{{ todo.id }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-check-square" viewBox="0 0 16 16">
+                                    <path
+                                        d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z" />
+                                    <path
+                                        d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.235.235 0 0 1 .02-.022z" />
+                                </svg>
+                            </button>
+                            <button type="button" class="editBtn btn btn-primary btn-sm me-2" data-id="{{ todo.id }}"
+                                data-date="{{ todo.date|date:'Y-m-d' }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-pencil-square" viewBox="0 0 16 16">
+                                    <path
+                                        d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                                    <path fill-rule="evenodd"
+                                        d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z" />
+                                </svg>
+                            </button>
+                            <button type="button" class="deleteBtn btn btn-danger btn-sm" data-id="{{ todo.id }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-trash3" viewBox="0 0 16 16">
+                                    <path
+                                        d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </li>
+                    {% endfor %}
+                    {% for todo in completed %}
+                    <li
+                        class="list-group-item d-flex align-items-center justify-content-between border-0 mb-2 rounded text-bg-success">
+                        <s>{{ todo.task|truncatechars:50 }}</s>
+                        <div class="d-flex align-items-center">
+                            <button type="button" class="checkBtn btn btn-warning btn-sm me-2" data-id="{{ todo.id }}">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                            <button type="button" class="editBtn btn btn-primary btn-sm me-2" data-id="{{ todo.id }}"
+                                data-date="{{ todo.date|date:'Y-m-d' }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-pencil-square" viewBox="0 0 16 16">
+                                    <path
+                                        d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                                    <path fill-rule="evenodd"
+                                        d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z" />
+                                </svg>
+                            </button>
+                            <button type="button" class="deleteBtn btn btn-danger btn-sm" data-id="{{ todo.id }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-trash3" viewBox="0 0 16 16">
+                                    <path
+                                        d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </li>
+                    {% endfor %}
+                    {% for todo in expired %}
+                    <li
+                        class="list-group-item d-flex align-items-center justify-content-between border-0 mb-2 rounded text-bg-danger">
+                        {{ todo.task|truncatechars:50 }}
+                        <div class="d-flex align-items-center">
+                            <button type="button" class="btn btn-secondary btn-sm me-2" title="Disabled" disabled>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-ban" viewBox="0 0 16 16">
+                                    <path
+                                        d="M15 8a6.973 6.973 0 0 0-1.71-4.584l-9.874 9.875A7 7 0 0 0 15 8ZM2.71 12.584l9.874-9.875a7 7 0 0 0-9.874 9.874ZM16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0Z" />
+                                </svg>
+                            </button>
+                            <button type="button" class="editBtn btn btn-primary btn-sm me-2" data-id="{{ todo.id }}"
+                                data-date="{{ todo.date|date:'Y-m-d' }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-pencil-square" viewBox="0 0 16 16">
+                                    <path
+                                        d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                                    <path fill-rule="evenodd"
+                                        d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z" />
+                                </svg>
+                            </button>
+                            <button type="button" class="deleteBtn btn btn-warning btn-sm" data-id="{{ todo.id }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-trash3" viewBox="0 0 16 16">
+                                    <path
+                                        d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </li>
+                    {% endfor %}
+                    {% else %}
+                    <h6 class="text-center text-white pt-3">No Todo's Found</h6>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="tab-pane fade" id="pills-active" role="tabpanel" aria-labelledby="pills-active-tab"
+                tabindex="0">
+                <ul class="list-group mb-0">
+                    {% if todos %}
+                    {% for todo in todos %}
+                    <li
+                        class="list-group-item d-flex align-items-center justify-content-between border-0 mb-2 rounded text-bg-secondary">
+                        {{ todo.task|truncatechars:50 }}
+                        <div class="d-flex align-items-center">
+                            <button type="button" class="checkBtn btn btn-success btn-sm me-2" data-id="{{ todo.id }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-check-square" viewBox="0 0 16 16">
+                                    <path
+                                        d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z" />
+                                    <path
+                                        d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.235.235 0 0 1 .02-.022z" />
+                                </svg>
+                            </button>
+                            <button type="button" class="editBtn btn btn-primary btn-sm me-2" data-id="{{ todo.id }}"
+                                data-date="{{ todo.date|date:'Y-m-d' }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-pencil-square" viewBox="0 0 16 16">
+                                    <path
+                                        d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                                    <path fill-rule="evenodd"
+                                        d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z" />
+                                </svg>
+                            </button>
+                            <button type="button" class="deleteBtn btn btn-danger btn-sm" data-id="{{ todo.id }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-trash3" viewBox="0 0 16 16">
+                                    <path
+                                        d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </li>
+                    {% endfor %}
+                    {% else %}
+                    <h6 class="text-center text-white pt-3">No Active Todo's Found</h6>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="tab-pane fade" id="pills-completed" role="tabpanel" aria-labelledby="pills-completed-tab"
+                tabindex="0">
+                <ul class="list-group mb-0">
+                    {% if completed %}
+                    {% for todo in completed %}
+                    <li
+                        class="list-group-item d-flex align-items-center justify-content-between border-0 mb-2 rounded text-bg-success">
+                        <s>{{ todo.task|truncatechars:50 }}</s>
+                        <div class="d-flex align-items-center">
+                            <button type="button" class="checkBtn btn btn-warning btn-sm me-2" data-id="{{ task.id }}">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                            <button type="button" class="editBtn btn btn-primary btn-sm me-2" data-id="{{ task.id }}"
+                                data-date="{{ todo.date|date:'Y-m-d' }}">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            <button type="button" class="deleteBtn btn btn-danger btn-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-trash3" viewBox="0 0 16 16">
+                                    <path
+                                        d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </li>
+                    {% endfor %}
+                    {% else %}
+                    <h6 class="text-center text-white pt-3">No Completed Todo's Found</h6>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="tab-pane fade" id="pills-expired" role="tabpanel" aria-labelledby="pills-expired-tab"
+                tabindex="0">
+                <ul class="list-group mb-0">
+                    {%if expired %}
+                    {% for todo in expired %}
+                    <li
+                        class="list-group-item d-flex align-items-center justify-content-between border-0 mb-2 rounded text-bg-danger">
+                        {{ todo.task|truncatechars:50 }}
+                        <div class="d-flex align-items-center">
+                            <button type="button" class="checkBtn btn btn-secondary btn-sm me-2" title="Disabled"
+                                disabled>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-ban" viewBox="0 0 16 16">
+                                    <path
+                                        d="M15 8a6.973 6.973 0 0 0-1.71-4.584l-9.874 9.875A7 7 0 0 0 15 8ZM2.71 12.584l9.874-9.875a7 7 0 0 0-9.874 9.874ZM16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0Z" />
+                                </svg>
+                            </button>
+                            <button type="button" class="editBtn btn btn-primary btn-sm me-2" data-id="{{ todo.id }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-pencil-square" viewBox="0 0 16 16">
+                                    <path
+                                        d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                                    <path fill-rule="evenodd"
+                                        d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z" />
+                                </svg>
+                            </button>
+                            <button type="button" class="deleteBtn btn btn-warning btn-sm" data-id="{{ todo.id }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-trash3" viewBox="0 0 16 16">
+                                    <path
+                                        d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </li>
+                    {% endfor %}
+                    {% else %}
+                    <h6 class="text-center text-white pt-3">No Expired Todo's Found</h6>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    </div>
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header text-bg-danger">
+                <strong class="me-auto">Some Error Occurred</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body text-bg-secondary">
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Edit todo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="updatedTask" name="updatedTask"
+                            placeholder="Enter updated task" required>
+                        <label for="updatedTask">Enter Updated Task</label>
+                    </div>
+
+                    <!-- Password input -->
+                    <div class="form-floating mb-4">
+                        <input type="date" class="form-control" id="updatedDate" placeholder="Enter updated date"
+                            name="updatedDate" required>
+                        <label for="updatedDate">Enter Updated Date</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveEdit">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </body>
+
 </html>

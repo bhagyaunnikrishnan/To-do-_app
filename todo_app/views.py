@@ -1,3 +1,4 @@
+import datetime
 from django.shortcuts import render, redirect
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
@@ -5,10 +6,21 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.urls import reverse
 from django.contrib import messages
+from .models import Todo
 
 def index(request):
     name = request.user.username
-    return render(request, "index.html", {'name':name})
+    if request.method == 'POST':
+        task = request.POST['task']
+        date = request.POST['date']
+        print(date)
+        todo = Todo.objects.create(username=request.user.username, task=task, created_at=date)
+        todo.save()
+        return redirect(reverse(index))
+    completed = Todo.objects.filter(username=request.user.username, completed=True)
+    todos = Todo.objects.filter(username=request.user.username, completed=False, created_at__gte=datetime.date.today())
+    expired = Todo.objects.filter(username=request.user.username, completed=False, created_at__lt=datetime.date.today())
+    return render(request, "index.html", {'name':name, 'todos': todos, 'completed': completed, 'expired': expired,})
 
 def register(request):
     if request.method == 'POST':
@@ -56,4 +68,4 @@ def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse("login"))
 
-# Create your views here.
+
