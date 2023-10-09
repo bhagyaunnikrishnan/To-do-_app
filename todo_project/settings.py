@@ -30,7 +30,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', default='thisisahugesecret')
 DEBUG = 'VERCEL' not in os.environ
 
 # https://docs.djangoproject.com/en/3.0/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ['127.0.0.1', '.vercel.app', 'bhagyaunnikrishnan.in']
+ALLOWED_HOSTS = ['127.0.0.1', '.vercel.app', '.bhagyaunnikrishnan.in']
 
 
 
